@@ -1,8 +1,10 @@
 package com.example.youtubeapp.flickrbrowser;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -45,9 +47,16 @@ public class MainActivity extends BaseActivity implements GetFlickrJsonData.OnDa
     protected void onResume() {
         Log.d(TAG, "onResume starts");
         super.onResume();
-        GetFlickrJsonData getFlickrJsonData = new GetFlickrJsonData("https://api.flickr.com/services/feeds/photos_public.gne", "en-us", true, this);
-//        getFlickrJsonData.executeOnSameThread("android, nougat");
-        getFlickrJsonData.execute("android,nougat");
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String queryResult = sharedPreferences.getString(FLICKR_QUERY, "");
+        Log.d(TAG, "queryResult: " + queryResult);
+
+        if(queryResult.length() > 0){
+            GetFlickrJsonData getFlickrJsonData = new GetFlickrJsonData("https://api.flickr.com/services/feeds/photos_public.gne", "en-us", true, this);
+            getFlickrJsonData.execute(queryResult);
+
+        }
         Log.d(TAG, "onResume ends");
     }
 
@@ -70,6 +79,11 @@ public class MainActivity extends BaseActivity implements GetFlickrJsonData.OnDa
         if (id == R.id.action_settings) {
             return true;
         }
+        if (id == R.id.action_search){
+            Intent intent = new Intent(this, SearchActivity.class);
+            startActivity(intent);
+            return true;
+        }
 
         Log.d(TAG, "onOptionsItemSelected() returned: returned");
         return super.onOptionsItemSelected(item);
@@ -82,6 +96,8 @@ public class MainActivity extends BaseActivity implements GetFlickrJsonData.OnDa
         } else {
             Log.e(TAG, "onDataAvailable: failed with status " + status );
         }
+
+        Log.d(TAG, "onDataAvailable: ends");
     }
 
     @Override
